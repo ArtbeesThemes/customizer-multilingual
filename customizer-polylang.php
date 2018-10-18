@@ -6,28 +6,37 @@
  *
  * Inspired by https://github.com/fastlinemedia/customizer-export-import
  *
- * @since 1.0.0
+ * @package Jupiter\Framework\API\Customizer
  */
+
 namespace JupiterX\Customizer\Multilingual;
 
 if ( ! \function_exists( 'pll_current_language' ) && ! \class_exists( 'SitePress' ) ) {
 	return;
 }
 
-\add_action( 'customize_save_after'              , __NAMESPACE__ . '\CustomizerMultilingual::save_settings', 1000 );
-\add_action( 'plugins_loaded'                    , __NAMESPACE__ . '\CustomizerMultilingual::load_settings', 9 ); // Must happen before 10 when _wp_customize_include() fires.
-\add_action( 'after_setup_theme'                 , __NAMESPACE__ . '\CustomizerMultilingual::load_settings' );
+\add_action( 'customize_save_after', __NAMESPACE__ . '\CustomizerMultilingual::save_settings', 1000 );
+\add_action( 'plugins_loaded', __NAMESPACE__ . '\CustomizerMultilingual::load_settings', 9 );  // Must happen before 10 when _wp_customize_include() fires.
+\add_action( 'after_setup_theme', __NAMESPACE__ . '\CustomizerMultilingual::load_settings' );
 \add_action( 'customize_controls_enqueue_scripts', __NAMESPACE__ . '\CustomizerMultilingual::add_lang_to_customizer_previewer', 9 );
-\add_action( 'wp_before_admin_bar_render'        , __NAMESPACE__ . '\CustomizerMultilingual::on_wp_before_admin_bar_render', 100 );
-\add_action( 'admin_menu'                        , __NAMESPACE__ . '\CustomizerMultilingual::on_admin_menu', 100 );
-\add_action( 'after_setup_theme'                 , __NAMESPACE__ . '\CustomizerMultilingual::remove_filters', 5 );
+\add_action( 'wp_before_admin_bar_render', __NAMESPACE__ . '\CustomizerMultilingual::on_wp_before_admin_bar_render', 100 );
+\add_action( 'admin_menu', __NAMESPACE__ . '\CustomizerMultilingual::on_admin_menu', 100 );
+\add_action( 'after_setup_theme', __NAMESPACE__ . '\CustomizerMultilingual::remove_filters', 5 );
 
 
 interface CustimizerMultilingualInterface {
-	public static function save_settings( $wp_customize);
-	public static function load_settings( $wp_customize = null);
+	public static function save_settings( $wp_customize); // @phpcs:ignore
+	public static function load_settings( $wp_customize = null); // @phpcs:ignore
 }
 
+/**
+ * Functionality for multilingual customizer.
+ *
+ * @since 1.0.0
+ *
+ * @package Jupiter\Framework\API\Customizer
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ */
 class CustomizerMultilingual implements CustimizerMultilingualInterface {
 
 	/**
@@ -38,9 +47,9 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 	 * @return void
 	 */
 	public static function remove_filters() {
-		global $WPML_String_Translation;
-		remove_filter( 'pre_update_option_blogname', [ $WPML_String_Translation, 'pre_update_option_blogname' ], 5 );
-		remove_filter( 'pre_update_option_blogdescription', [ $WPML_String_Translation, 'pre_update_option_blogdescription' ], 5 );
+		global $WPML_String_Translation; // @phpcs:ignore
+		remove_filter( 'pre_update_option_blogname', [ $WPML_String_Translation, 'pre_update_option_blogname' ], 5 ); // @phpcs:ignore
+		remove_filter( 'pre_update_option_blogdescription', [ $WPML_String_Translation, 'pre_update_option_blogdescription' ], 5 ); // @phpcs:ignore
 	}
 
 	/**
@@ -51,7 +60,7 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 	 * @return string|bool $language|false Current language or false when none of Polylang & WPML are active.
 	 */
 	public static function get_language() {
-		if ( function_exists( 'pll_current_language' ) ) {
+		if ( \function_exists( 'pll_current_language' ) ) {
 			$language = pll_current_language();
 
 			if ( ! $language ) {
@@ -61,7 +70,7 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 			return $language;
 		}
 
-		if ( class_exists('SitePress') && defined( 'ICL_LANGUAGE_CODE' ) ) {
+		if ( class_exists( 'SitePress' ) && defined( 'ICL_LANGUAGE_CODE' ) ) {
 			return ICL_LANGUAGE_CODE;
 		}
 
@@ -76,19 +85,19 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 	 * @return array|bool $languages|false List of active languages or false when none of Polylang & WPML are active.
 	 */
 	public static function get_languages_list() {
-		if ( function_exists( 'pll_current_language' ) ) {
+		if ( \function_exists( 'pll_current_language' ) ) {
 			return get_option( '_transient_pll_languages_list' );
 		}
 
-		if ( class_exists('SitePress') && defined( 'ICL_LANGUAGE_CODE' ) ) {
-			$list = icl_get_languages('skip_missing=1');
+		if ( class_exists( 'SitePress' ) && defined( 'ICL_LANGUAGE_CODE' ) ) {
+			$list      = icl_get_languages( 'skip_missing=1' );
 			$languages = [];
 
 			foreach ( $list as $language ) {
-				$temp = [];
+				$temp         = [];
 				$temp['name'] = $language['native_name'];
 				$temp['slug'] = $language['code'];
-				$languages[] = $temp;
+				$languages[]  = $temp;
 			}
 
 			return $languages;
@@ -105,11 +114,11 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 	 * @return string|bool Option key or false when none of Polylang & WPML are active.
 	 */
 	public static function get_option_key() {
-		if ( function_exists( 'pll_current_language' ) ) {
+		if ( \function_exists( 'pll_current_language' ) ) {
 			return '_customizer_polylang_settings_';
 		}
 
-		if ( class_exists('SitePress') && defined( 'ICL_LANGUAGE_CODE' ) ) {
+		if ( class_exists( 'SitePress' ) && defined( 'ICL_LANGUAGE_CODE' ) ) {
 			return '_customizer_wpml_settings_';
 		}
 
@@ -119,16 +128,18 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 	/**
 	 * Get home URL of current language.
 	 *
+	 * @param string $language current language.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @return string|bool Home URL of current language or false when none of Polylang & WPML are active.
 	 */
 	public static function get_home_url( $language ) {
-		if ( function_exists( 'pll_current_language' ) ) {
+		if ( \function_exists( 'pll_current_language' ) ) {
 			return pll_home_url( $language );
 		}
 
-		if ( class_exists('SitePress') ) {
+		if ( \class_exists( 'SitePress' ) ) {
 			global $sitepress;
 			return $sitepress->language_url( $language );
 		}
@@ -136,6 +147,15 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 		return false;
 	}
 
+	/**
+	 * Save settings per language.
+	 *
+	 * @param object $wp_customize Customizer object.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return void
+	 */
 	public static function save_settings( $wp_customize ) {
 		$language = self::get_language();
 
@@ -154,14 +174,14 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 		];
 		// Get options from the Customizer API.
 		$settings = $wp_customize->settings();
+
 		foreach ( $settings as $key => $setting ) {
-			if ( 'option' == $setting->type ) {
+			if ( 'option' === $setting->type ) {
 				switch ( $key ) {
-					// ignore these
+					// Ignore these.
 					case stristr( $key, 'widget_' ):
 					case stristr( $key, 'sidebars_' ):
 					case stristr( $key, 'nav_menus_' ):
-						continue;
 						break;
 
 					default:
@@ -178,7 +198,7 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 			}
 		}
 
-		if ( function_exists( 'wp_get_custom_css_post' ) ) {
+		if ( \function_exists( 'wp_get_custom_css_post' ) ) {
 			$data['wp_css'] = wp_get_custom_css();
 		}
 
@@ -186,6 +206,17 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 		\update_option( $option_prefix . self::get_option_key() . $language, $data );
 	}
 
+	/**
+	 * Load settings per language.
+	 *
+	 * @param object $wp_customize Customizer object.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return void
+	 * @SuppressWarnings(PHPMD.ElseExpression)
+	 * @SuppressWarnings(PHPMD.NPathComplexity)
+	 */
 	public static function load_settings( $wp_customize = null ) {
 		global $cei_error;
 
@@ -201,7 +232,7 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 
 		if ( $data ) {
 			// Data checks.
-			if ( 'array' != gettype( $data ) ) {
+			if ( 'array' !== gettype( $data ) ) {
 				return;
 			}
 
@@ -209,7 +240,7 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 				return;
 			}
 
-			if ( $data['template'] != $template ) {
+			if ( $data['template'] !== $template ) {
 				return;
 			}
 
@@ -231,7 +262,7 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 				}
 			}
 			// If wp_css is set then import it.
-			if ( function_exists( 'wp_update_custom_css_post' ) && isset( $data['wp_css'] ) && '' !== $data['wp_css'] ) {
+			if ( \function_exists( 'wp_update_custom_css_post' ) && isset( $data['wp_css'] ) && '' !== $data['wp_css'] ) {
 				wp_update_custom_css_post( $data['wp_css'] );
 			}
 			foreach ( $data['mods'] as $key => $val ) {
@@ -256,14 +287,12 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 			return;
 		}
 
-		$handle    = 'dss-add-lang-to-template';
+		$handle      = 'dss-add-lang-to-template';
 		$js_path_url = trailingslashit( apply_filters( 'scp_js_path_url', get_stylesheet_directory_uri() . '/js/' ) );
-		$src       = $js_path_url . 'customizer-polylang.js';
-		$deps      = [ 'customize-controls' ];
-		$version   = rand();
-		$in_footer = 1;
-		wp_enqueue_script( $handle, $src, $deps, $version, $in_footer );
-		$language = ( empty( $_REQUEST['lang'] ) ) ? self::get_language() : $_REQUEST['lang'];
+		$src         = $js_path_url . 'customizer-multilingual.js';
+		$deps        = [ 'customize-controls' ];
+		wp_enqueue_script( $handle, $src, $deps, JUPITER_VERSION, true );
+		$language = ( empty( $_REQUEST['lang'] ) ) ? self::get_language() : $_REQUEST['lang']; // @phpcs:ignore
 
 		if ( empty( $language ) ) {
 			$language = self::default_language();
@@ -316,8 +345,8 @@ class CustomizerMultilingual implements CustimizerMultilingualInterface {
 			return;
 		}
 		foreach ( $submenu[ $parent ] as $k => $d ) {
-			if ( 'customize' == $d['1'] ) {
-				$submenu[ $parent ][ $k ]['2'] = add_query_arg( 'lang', self::get_language(), $submenu[ $parent ][ $k ]['2'] );
+			if ( 'customize' === $d['1'] ) {
+				$submenu[ $parent ][ $k ]['2'] = add_query_arg( 'lang', self::get_language(), $submenu[ $parent ][ $k ]['2'] ); // @phpcs:ignore
 				break;
 			}
 		}
@@ -332,7 +361,7 @@ if ( class_exists( 'WP_Customize_Setting' ) ) {
 	 *
 	 * @since 0.3
 	 */
-	final class Customizermultilingialoption extends \WP_Customize_Setting {
+	final class Customizermultilingialoption extends \WP_Customize_Setting { // @phpcs:ignore
 
 
 		/**
